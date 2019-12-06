@@ -8,12 +8,24 @@
 
 import Foundation
 
+
+//creating a protocol
+//As convention the protocol MUST be created in the same file
+//That will use the protocol
+protocol WeatherManagerDelegate {
+    func didUpdateWeather(_ weatherManager: WeatherManager, weather: WeatherModel)
+    func didFailWithError(error: Error)
+}
+
 //Struct for API calls to the openweather api
 struct WeatherManager {
     //The queries to the api order does not metter
     
     //URL make sure to use https secure
     let weatherURL =  "https://api.openweathermap.org/data/2.5/weather?appid=edee7c3774cea803358c17ed3bf36159"
+    
+    //Setting the delegate optional
+    var delegate: WeatherManagerDelegate?
     
     func fetchWeather(cityName: String){
         //using string interpolation to complete the query using the city the
@@ -23,10 +35,10 @@ struct WeatherManager {
         let urlString = "\(weatherURL)&q=\(cityName)&\(unitType)"
         
         //Call the performRequest method
-        performRequest(urlString: urlString)
+        performRequest(with: urlString)
     }
     
-    func performRequest(urlString: String) {
+    func performRequest(with urlString: String) {
         //1.Create url Object
         //Here we are using a URL build in method set to an option string
         //and we unwrap using a if  statement
@@ -39,14 +51,19 @@ struct WeatherManager {
             let task = session.dataTask(with: url) { (data, response, error) in
                 //IF there is an error print it and return to terminate process
                 if error != nil{
-                    print("error")
+                    self.delegate?.didFailWithError(error: error!)
                     return
                 }
                 
                 if let safeData = data {
                     //if we call a method of the current class insde a closure we must use self
-                    self.parseJSON(weatherData: safeData)
+                     if let weather = self.parseJSON(safeData) {
+                        
+                        //implementing delegate to trigger action/func
+                        self.delegate?.didUpdateWeather(self, weather:weather)
+                    }
                 }
+                
             }
             //4.Start the task, is call resume because
             //always start in a suspended state so resume to start
@@ -54,17 +71,24 @@ struct WeatherManager {
         }
     }
     //creating a method to parse the JSON coming from API to swift
-    func parseJSON(weatherData: Data){
+    func parseJSON(_ weatherData: Data) -> WeatherModel? {
         //initializing the decoder
         let decoder = JSONDecoder()
         //creating decode passing the WeatherData struct
         //and the weatherData coming from API
         do{
-           let decodedData = try decoder.decode(WeatherData.self, from: weatherData)
-            print(decodedData.main.temp)
-            print(decodedData.weather[0].description)
+            let decodedData = try decoder.decode(WeatherData.self, from: weatherData)
+            let temp = decodedData.main.temp
+            let weatherID = decodedData.weather[0].id
+            let name = decodedData.name
+            //now passing the data to a struct instead of calling the func here
+            //to make the code more organized
+            let weather = WeatherModel(conditionId: weatherID, cityName: name, temperature: temp)
+            return weather
+            
         }catch{
-            print(error)
+            delegate?.didFailWithError(error: error)
+            return nil
         }
     }
 }

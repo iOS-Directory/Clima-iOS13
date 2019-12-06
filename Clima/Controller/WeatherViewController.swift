@@ -8,8 +8,8 @@
 
 import UIKit
 
-class WeatherViewController: UIViewController, UITextFieldDelegate {
-
+class WeatherViewController: UIViewController, UITextFieldDelegate, WeatherManagerDelegate {
+    
     @IBOutlet weak var conditionImageView: UIImageView!
     @IBOutlet weak var temperatureLabel: UILabel!
     @IBOutlet weak var cityLabel: UILabel!
@@ -20,22 +20,25 @@ class WeatherViewController: UIViewController, UITextFieldDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        //For the custom Protocol we must this class to delegate
+        weatherManager.delegate = self
+        
         // Do any additional setup after loading the view.
         //setting the searchTextField.delegate to this class
         searchTextField.delegate = self
     }
-
+    
     @IBAction func searchPressed(_ sender: UIButton) {
         //this will dismiss the keyboard after pressing search
         searchTextField.endEditing(true)
-        print(searchTextField.text!)
     }
     
     //This will trigger theresponse when pressing the retirn button
     //on the keyboard
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-         //this will dismiss the keyboard after pressing search
-         searchTextField.endEditing(true)
+        //this will dismiss the keyboard after pressing search
+        searchTextField.endEditing(true)
         print(searchTextField.text!)
         return true
     }
@@ -64,6 +67,24 @@ class WeatherViewController: UIViewController, UITextFieldDelegate {
         
         //here we clear the text field after pressign search
         searchTextField.text = ""
+    }
+    
+    //Declaring the protocol method using inplicit parameter
+    func didUpdateWeather(_ weatherManager: WeatherManager , weather: WeatherModel) {
+        //Since this is a networking call we must wrap the ui update
+        //to DispatchQueue.main.async
+        DispatchQueue.main.async {
+            self.temperatureLabel.text = weather.temperatureString
+            self.cityLabel.text = weather.cityName
+            //Getting the switch result to set the condition image
+            //the systemName expects a name that matches the SF Symbole
+            self.conditionImageView.image = UIImage(systemName: weather.conditionName)
+        }
+        
+    }
+    
+    func didFailWithError(error: Error) {
+        print(error)
     }
 }
 
