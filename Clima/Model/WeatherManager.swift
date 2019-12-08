@@ -24,16 +24,24 @@ struct WeatherManager {
     //URL make sure to use https secure
     let weatherURL =  "https://api.openweathermap.org/data/2.5/weather?appid=edee7c3774cea803358c17ed3bf36159"
     
+    //user could select a button to switch between F and C
+    let unitType = "units=imperial"
     //Setting the delegate optional
     var delegate: WeatherManagerDelegate?
     
+    //For user using location service / GPS
+    //In SWIFT we can use the same func/method names as long as the paremeters are
+    //different
+    func fetchWeather(latitude: Double, longitud: Double){
+        let urlString = "\(weatherURL)&lat=\(latitude)&lon=\(longitud)&\(unitType)"
+        //Call the performRequest method
+        performRequest(with: urlString)
+    }
+    
+    //For user manually entering city name
     func fetchWeather(cityName: String){
-        //using string interpolation to complete the query using the city the
-        //user passes
-        let unitType = "units=imperial"
-        
         let urlString = "\(weatherURL)&q=\(cityName)&\(unitType)"
-        
+
         //Call the performRequest method
         performRequest(with: urlString)
     }
@@ -57,7 +65,7 @@ struct WeatherManager {
                 
                 if let safeData = data {
                     //if we call a method of the current class insde a closure we must use self
-                     if let weather = self.parseJSON(safeData) {
+                    if let weather = self.parseJSON(safeData) {
                         
                         //implementing delegate to trigger action/func
                         self.delegate?.didUpdateWeather(self, weather:weather)
