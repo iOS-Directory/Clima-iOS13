@@ -36,8 +36,8 @@ struct WeatherModel {
             return "cloud.fog"
         case 800:
             return "sun.max"
-        case 801...804:
-            return "cloud.bolt"
+        case 801...803:
+            return "cloud.sun"
         default:
             return "cloud"
         }

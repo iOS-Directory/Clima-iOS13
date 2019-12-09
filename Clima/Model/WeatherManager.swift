@@ -33,15 +33,16 @@ struct WeatherManager {
     //In SWIFT we can use the same func/method names as long as the paremeters are
     //different
     func fetchWeather(latitude: Double, longitud: Double){
-        let urlString = "\(weatherURL)&lat=\(latitude)&lon=\(longitud)&\(unitType)"
+        let urlString = "\(weatherURL)&\(unitType)&lat=\(latitude)&lon=\(longitud)"
         //Call the performRequest method
+ 
         performRequest(with: urlString)
     }
     
     //For user manually entering city name
     func fetchWeather(cityName: String){
-        let urlString = "\(weatherURL)&q=\(cityName)&\(unitType)"
-
+        let urlString = "\(weatherURL)&\(unitType)&q=\(cityName)"
+ 
         //Call the performRequest method
         performRequest(with: urlString)
     }
@@ -51,7 +52,7 @@ struct WeatherManager {
         //Here we are using a URL build in method set to an option string
         //and we unwrap using a if  statement
         if let url = URL(string: urlString) {
-            
+//            print(url)
             //2.Create URLSession object
             let session = URLSession(configuration: .default)
             
